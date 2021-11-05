@@ -1,7 +1,12 @@
-from classfoo import Foo
+from classFoo import Foo
+from classGradient import Gradient
 
 
-def descent_with_const_step(f: Foo, xk) -> float:
-    #  x(k + 1) = xk - alpha * df(xk)/dx, alpha is constant
+def sub(vector, alpha, grad: Gradient):
+    return [el - alpha * grad[i](grad.get__x()) for i, el in enumerate(vector)]
+
+
+def descent_with_const_step(f: Foo, xk):
+    f.get_gradient().set__x(xk)
     alpha = 0.09
-    return xk - alpha * f.get_gradient(xk)
+    return sub(xk, alpha, f.get_gradient())
