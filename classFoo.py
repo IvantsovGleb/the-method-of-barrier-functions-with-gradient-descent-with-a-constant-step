@@ -1,8 +1,5 @@
-from classGradient import Gradient
-
-
-class Foo(object):
-    def __init__(self, func, grad: Gradient):
+class Foo:
+    def __init__(self, func, grad):
         self.__func = func
         self.__gradient = grad
 
@@ -13,4 +10,4 @@ class Foo(object):
         return self.__gradient
 
     def check_point(self, x):
-        return self.__func(x) <= 0
+        return self.__func(x) <= 79

@@ -1,8 +1,10 @@
 from classFoo import Foo
-from classGradient import Gradient
 from barrier_func_method import barrier_method
+from decimal import *
 
-x0 = [1, 1, 1, 1, 1]
+getcontext().prec = 4
+
+x0 = [Decimal(0.1), Decimal(0.1), Decimal(0.1), Decimal(0.1), Decimal(0.1)]
 
 gradient = [
     lambda x: 802 * x[0] - 8 * (25 * (x[1] + x[2] + x[3] + x[4]) + 1),
@@ -15,7 +17,7 @@ gradient = [
 f = Foo(
     lambda x: 100 * ((x[1] - x[0]) ** 2 + (x[2] - x[0]) ** 2 + (x[3] - x[0]) ** 2 + (x[4] - x[0]) ** 2) + (
             x[0] - 4) ** 2,
-    Gradient(gradient)
+    gradient
 )
 
 barrier_gradient = [
@@ -28,16 +30,15 @@ barrier_gradient = [
 
 g = Foo(
     lambda x: sum(i * xi ** 2 for i, xi in enumerate(x, start=1)),
-    Gradient(barrier_gradient)
+    barrier_gradient
 )
 
 
 def main():
-    barrier_functions = [g]
-    r0 = 2  # [2, 10]
-    c = 2
+    r0 = Decimal(10)  # [2, 10]
+    c = Decimal(0.5)
 
-    print('optima: {}'.format(barrier_method(f, barrier_functions, x0, r0, c)))
+    print('optima: {}'.format(barrier_method(f, g, x0, r0, c)))
     return 0
 
 
