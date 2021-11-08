@@ -4,7 +4,7 @@ from decimal import *
 
 getcontext().prec = 4
 
-x0 = [Decimal(0.1), Decimal(0.1), Decimal(0.1), Decimal(0.1), Decimal(0.1)]
+x0 = [Decimal(0.3), Decimal(0.5), Decimal(0.1), Decimal(0.2), Decimal(0.2)]
 
 gradient = [
     lambda x: 802 * x[0] - 8 * (25 * (x[1] + x[2] + x[3] + x[4]) + 1),

@@ -1,7 +1,7 @@
-from tabulate import tabulate
-
 from classFoo import Foo
 from gradient_descent_with_const_step import descent_with_const_step
+
+from tabulate import tabulate
 from decimal import *
 
 getcontext().prec = 4
