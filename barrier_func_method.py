@@ -17,25 +17,29 @@ def get_auxiliary_function(f: Foo, g, rk) -> Foo:
 
 def is_time_to_stop(xk, rk, g):
     eps = Decimal(0.00001)
-    B = Decimal(-1) / g.get_func()(xk)
-    return True if abs(rk * B) <= eps else False, abs(rk * B)
+    rb = -rk * Decimal(1) / g.get_func()(xk)
+    return True if abs(rb) <= eps else False, abs(rb)
 
 
-def barrier_method(f: Foo, g, x0, r0, c):
-    xk = 0
+def barrier_method(f: Foo, g: Foo, x0, r0, c) -> list:
+    xk = [0, 0, 0, 0, 0]
 
     table = []
-    headers = ['k', 'r ^ k', 'x ^ k', 'f(xk)', 'F(x, r ^ k)', '(r ^ k) * B(x, r ^ k)']
+    headers = ['k', 'r ^ k', 'f(xk)', 'F(x ^ k, r ^ k)', '(r ^ k) * B(x, r ^ k)']
     k = Decimal(0)
     rk = r0
     cur_point = x0
+
     condition = True
+    # and g.check_point(cur_point):
     while condition:
         auxiliary_func = get_auxiliary_function(f, g, rk)
         xk = descent_with_const_step(auxiliary_func, cur_point)
         v = is_time_to_stop(xk, rk, g)
-
-        table.append([k, rk, xk, f.get_func()(xk), auxiliary_func.get_func()(xk), v[1]])
+        if g.check_point_strict(xk):
+            table.append([k, rk, f.get_func()(xk), auxiliary_func.get_func()(xk), v[1]])
+        else:
+            break
 
         condition = not v[0]
         if condition:
@@ -43,5 +47,7 @@ def barrier_method(f: Foo, g, x0, r0, c):
             cur_point = xk
             k += 1
 
-    print(tabulate(table, headers, tablefmt="pretty"))
-    return xk
+    if g.check_point_strict(xk):
+        print(tabulate(table, headers, tablefmt="pretty"))
+        return xk
+    return [0, 0, 0, 0, 0]

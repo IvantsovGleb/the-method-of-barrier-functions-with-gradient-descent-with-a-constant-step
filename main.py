@@ -29,7 +29,7 @@ barrier_gradient = [
 ]
 
 g = Foo(
-    lambda x: sum(i * xi ** 2 for i, xi in enumerate(x, start=1)),
+    lambda x: sum(i * (xi ** 2) for i, xi in enumerate(x, start=1)),
     barrier_gradient
 )
 
