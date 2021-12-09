@@ -1,10 +1,7 @@
 from barrier_func_method import barrier_method
 from main import f, g
 
-# from scipy.optimize import minimize
-# import numpy as np
-# import pulp as plp
-
+import openpyxl
 from decimal import *
 
 getcontext().prec = 4
@@ -16,32 +13,40 @@ def f_range(start: Decimal, stop: Decimal, step: Decimal):
         start += step
 
 
-def test():
-    x0 = [Decimal(0.1), Decimal(0.3), Decimal(0.3), Decimal(0.3), Decimal(0.3)]
-    r0 = Decimal(10)
+def test(sheet):
+    x0 = [Decimal(0.1), Decimal(0.5), Decimal(0.1), Decimal(0.2), Decimal(0.2)]
+    r0 = Decimal(45)
     c = Decimal(0.5)
 
+    row, col = 1, 1
+    sheet.cell(row=row, column=col).value = 'set of starting points'
+    row += 1
     for i, xi in enumerate(x0):
-        print(f'\n№ {i + 1} variable is fixed')
-        print(100 * '*' + '\n')
+        sheet.cell(row=row, column=col).value = f'x{i + 1} variable is fixed'
+        sheet.cell(row=row, column=2).value = 'Number of iterations'
+        row += 1
         for j in f_range(Decimal(-10), Decimal(10), Decimal(0.1)):
             x0[i] = j
-            if g.check_point(x0):
-                xk = barrier_method(f, g, x0, r0, c)
+            if g.check_point_strict(x0):
+                xk, k = barrier_method(f, g, x0, r0, c)
                 if xk != [0, 0, 0, 0, 0]:
-                    print('start_point: [{x1:.1f}, {x2:.1f}, {x3:.1f}, {x4:.1f}, {x5:.1f}]'.format(x1=x0[0], x2=x0[1], x3=x0[2], x4=x0[3], x5=x0[4]))
-                    print('g(x0): {} <= 79'.format(g.get_func()(x0)))
-                    print('optima: [{x1:.1f}, {x2:.1f}, {x3:.1f}, {x4:.1f}, {x5:.1f}]'.format(x1=xk[0], x2=xk[1], x3=xk[2], x4=xk[3], x5=xk[4]))
-                    print('g(xk): {} <= 79\n'.format(g.get_func()(xk)))
-                else:
-                    pass
-                    # print('method diverges\n')
-        print(100 * '*' + '\n')
+                    sheet.cell(row=row, column=col).value = f'({x0[0]:.1f}, {x0[1]:.1f}, {x0[2]:.1f}, {x0[3]:.1f}, {x0[4]:.1f})'
+                    sheet.cell(row=row, column=2).value = k
+                    row += 1
         x0[i] = xi
 
 
 def main():
-    test()
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    # sheet["A1"].value = "k"
+    # sheet["B1"].value = "r ^ k"
+    # sheet["C1"].value = "f(xk)"
+    # sheet["D1"].value = "B(xk)"
+    # sheet["E1"].value = "(r ^ k) * B(x, r ^ k)"
+    # sheet["F1"].value = "F( r ^ k, x ^ k)"
+    test(sheet)
+    wb.save(filename="excel.xlsx")
     return 0
 
 
