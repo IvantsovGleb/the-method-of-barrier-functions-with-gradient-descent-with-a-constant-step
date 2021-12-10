@@ -1,26 +1,38 @@
 from classFoo import Foo
 from gradient_descent_with_const_step import descent_with_const_step
 
+import numpy as np
 from tabulate import tabulate
 from decimal import *
 
 getcontext().prec = 4
 
 
-def get_auxiliary_function(f: Foo, g, rk) -> Foo:
+# def get_auxiliary_function(f: Foo, g, rk) -> Foo:
+#     grad = []
+#     for der_f, der_g in zip(f.get_gradient(), g.get_gradient()):
+#         grad.append(lambda x: der_f(x) + rk * der_g(x) / g.get_func()(x) ** 2)
+#
+#     return Foo(lambda x: f.get_func()(x) + rk * get_barrier_function(g)(x), grad)
+#
+#
+# def get_barrier_function(g: Foo):
+#     return lambda x: -Decimal(1) / g.get_func()(x)
+
+def get_auxiliary_function(f: Foo, g, t) -> Foo:
     grad = []
     for der_f, der_g in zip(f.get_gradient(), g.get_gradient()):
-        grad.append(lambda x: der_f(x) + rk * der_g(x) / g.get_func()(x) ** 2)
+        grad.append(lambda x: t * der_f(x) - der_g(x) / g.get_func()(x))
 
-    return Foo(lambda x: f.get_func()(x) + rk * get_barrier_function(g)(x), grad)
+    return Foo(lambda x: t * f.get_func()(x) + Decimal(get_barrier_function(g)(x)), grad)
 
 
 def get_barrier_function(g: Foo):
-    return lambda x: -Decimal(1) / g.get_func()(x)
+    return lambda x: -np.log(float(g.get_func()(x)))
 
 
 def rkB(xk, rk, g):
-    rkb = rk * get_barrier_function(g)(xk)
+    rkb = rk * Decimal(get_barrier_function(g)(xk))
     return abs(rkb)
 
 
@@ -43,10 +55,8 @@ def barrier_method(f: Foo, g: Foo, x0, r0, c) -> (list, int):
         if rkb < eps:
             condition = False
 
-        # if g.check_point(xk):
-        table.append([k, rk, f.get_func()(xk), get_barrier_function(g)(xk), rkb, auxiliary_func.get_func()(xk)])
-        # else:
-        #     break
+        if g.check_point(xk):
+            table.append([k, rk, f.get_func()(xk), get_barrier_function(g)(xk), rkb, auxiliary_func.get_func()(xk)])
 
         if condition:
             rk = rk * c

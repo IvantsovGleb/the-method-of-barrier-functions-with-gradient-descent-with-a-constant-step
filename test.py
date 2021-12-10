@@ -15,8 +15,8 @@ def f_range(start: Decimal, stop: Decimal, step: Decimal):
 
 def test(sheet):
     x0 = [Decimal(0.1), Decimal(0.5), Decimal(0.1), Decimal(0.2), Decimal(0.2)]
-    r0 = Decimal(45)
-    c = Decimal(0.5)
+    r0 = Decimal(100)
+    c = Decimal(0.7)
 
     row, col = 1, 1
     sheet.cell(row=row, column=col).value = 'set of starting points'
@@ -39,12 +39,6 @@ def test(sheet):
 def main():
     wb = openpyxl.Workbook()
     sheet = wb.active
-    # sheet["A1"].value = "k"
-    # sheet["B1"].value = "r ^ k"
-    # sheet["C1"].value = "f(xk)"
-    # sheet["D1"].value = "B(xk)"
-    # sheet["E1"].value = "(r ^ k) * B(x, r ^ k)"
-    # sheet["F1"].value = "F( r ^ k, x ^ k)"
     test(sheet)
     wb.save(filename="excel.xlsx")
     return 0
