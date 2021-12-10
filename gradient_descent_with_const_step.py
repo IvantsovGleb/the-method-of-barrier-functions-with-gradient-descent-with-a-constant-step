@@ -1,7 +1,4 @@
 from classFoo import Foo
-from decimal import *
-
-getcontext().prec = 4
 
 
 def sub(xk, alpha, grad):
@@ -9,5 +6,5 @@ def sub(xk, alpha, grad):
 
 
 def descent_with_const_step(f: Foo, xk):
-    alpha = Decimal(0.002)
+    alpha = 0.5
     return sub(xk, alpha, f.get_gradient())

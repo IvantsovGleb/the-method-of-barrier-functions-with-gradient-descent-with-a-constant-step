@@ -2,33 +2,32 @@ from barrier_func_method import barrier_method
 from main import f, g
 
 import openpyxl
-from decimal import *
-
-getcontext().prec = 4
 
 
-def f_range(start: Decimal, stop: Decimal, step: Decimal):
+def f_range(start, stop, step):
     while start <= stop:
-        yield Decimal(start)
+        yield start
         start += step
 
 
 def test(sheet):
-    x0 = [Decimal(0.1), Decimal(0.5), Decimal(0.1), Decimal(0.2), Decimal(0.2)]
-    r0 = Decimal(45)
-    c = Decimal(0.5)
+    x0 = [0.3, 0.5, 0.1, 0.2, 0.2]
+    t0 = 2
+    gamma = 10
 
     row, col = 1, 1
     sheet.cell(row=row, column=col).value = 'set of starting points'
     row += 1
     for i, xi in enumerate(x0):
+        print(f'x{i + 1} is fixed' + 100 * '*' + '\n')
         sheet.cell(row=row, column=col).value = f'x{i + 1} variable is fixed'
         sheet.cell(row=row, column=2).value = 'Number of iterations'
         row += 1
-        for j in f_range(Decimal(-10), Decimal(10), Decimal(0.1)):
+        for j in f_range(-10, 10, 0.1):
             x0[i] = j
             if g.check_point_strict(x0):
-                xk, k = barrier_method(f, g, x0, r0, c)
+                print(f'{x0} {g.get_func()(x0)} \n')
+                xk, k = barrier_method(f, g, x0, t0, gamma)
                 if xk != [0, 0, 0, 0, 0]:
                     sheet.cell(row=row, column=col).value = f'({x0[0]:.1f}, {x0[1]:.1f}, {x0[2]:.1f}, {x0[3]:.1f}, {x0[4]:.1f})'
                     sheet.cell(row=row, column=2).value = k
@@ -39,12 +38,6 @@ def test(sheet):
 def main():
     wb = openpyxl.Workbook()
     sheet = wb.active
-    # sheet["A1"].value = "k"
-    # sheet["B1"].value = "r ^ k"
-    # sheet["C1"].value = "f(xk)"
-    # sheet["D1"].value = "B(xk)"
-    # sheet["E1"].value = "(r ^ k) * B(x, r ^ k)"
-    # sheet["F1"].value = "F( r ^ k, x ^ k)"
     test(sheet)
     wb.save(filename="excel.xlsx")
     return 0
