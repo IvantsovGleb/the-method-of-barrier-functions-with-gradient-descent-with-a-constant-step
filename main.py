@@ -6,7 +6,7 @@ getcontext().prec = 4
 
 x0 = [Decimal(0.3), Decimal(0.5), Decimal(0.1), Decimal(0.2), Decimal(0.2)]
 
-gradient = [
+f_gradient = [
     lambda x: 802 * x[0] - 8 * (25 * (x[1] + x[2] + x[3] + x[4]) + 1),
     lambda x: 100 * (2 * x[1] - 2 * x[0]),
     lambda x: 100 * (2 * x[2] - 2 * x[0]),
@@ -17,10 +17,10 @@ gradient = [
 f = Foo(
     lambda x: 100 * ((x[1] - x[0]) ** 2 + (x[2] - x[0]) ** 2 + (x[3] - x[0]) ** 2 + (x[4] - x[0]) ** 2) + (
             x[0] - 4) ** 2,
-    gradient
+    f_gradient
 )
 
-barrier_gradient = [
+g_gradient = [
     lambda x: 2 * x[0],
     lambda x: 4 * x[1],
     lambda x: 6 * x[2],
@@ -30,17 +30,17 @@ barrier_gradient = [
 
 g = Foo(
     lambda x: sum(i * (xi ** 2) for i, xi in enumerate(x, start=1)),
-    barrier_gradient
+    g_gradient
 )
 
 
-def main():
-    r0 = Decimal(10)  # [2, 10]
-    c = Decimal(0.5)
-
-    print('optima: {}'.format(barrier_method(f, g, x0, r0, c)))
-    return 0
-
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     r0 = Decimal(10)  # [2, 10]
+#     c = Decimal(0.5)
+#
+#     print('optima: {}'.format(barrier_method(f, g, x0, r0, c)))
+#     return 0
+#
+#
+# if __name__ == '__main__':
+#     main()

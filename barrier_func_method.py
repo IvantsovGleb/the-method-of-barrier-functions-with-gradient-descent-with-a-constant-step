@@ -1,69 +1,87 @@
 from classFoo import Foo
-from gradient_descent_with_const_step import descent_with_const_step
+from gradient_descent_with_const_step import gradient_descent
 
-import numpy as np
 from tabulate import tabulate
 from decimal import *
 
 getcontext().prec = 4
 
 
-# def get_auxiliary_function(f: Foo, g, rk) -> Foo:
-#     grad = []
-#     for der_f, der_g in zip(f.get_gradient(), g.get_gradient()):
-#         grad.append(lambda x: der_f(x) + rk * der_g(x) / g.get_func()(x) ** 2)
-#
-#     return Foo(lambda x: f.get_func()(x) + rk * get_barrier_function(g)(x), grad)
-#
-#
-# def get_barrier_function(g: Foo):
-#     return lambda x: -Decimal(1) / g.get_func()(x)
-
-def get_auxiliary_function(f: Foo, g, t) -> Foo:
-    grad = []
-    for der_f, der_g in zip(f.get_gradient(), g.get_gradient()):
-        grad.append(lambda x: t * der_f(x) - der_g(x) / g.get_func()(x))
-
-    return Foo(lambda x: t * f.get_func()(x) + Decimal(get_barrier_function(g)(x)), grad)
+def logarithmic_barrier(g: Foo) -> Foo:
+    return Foo(
+        lambda x: -(g.get_func()(x).ln()),
+        [lambda x: - (der_g(x) / g.get_func()(x)) for der_g in g.get_gradient()]
+    )
 
 
-def get_barrier_function(g: Foo):
-    return lambda x: -np.log(float(g.get_func()(x)))
+def inverse_barrier(g: Foo) -> Foo:
+    return Foo(
+        lambda x: Decimal(-1) / g.get_func()(x),
+        [lambda x: der_g(x) / (g.get_func()(x) ** 2) for der_g in g.get_gradient()]
+    )
 
 
-def rkB(xk, rk, g):
-    rkb = rk * Decimal(get_barrier_function(g)(xk))
-    return abs(rkb)
+def get_barrier_function(g: Foo, barrier_type='logarithmic'):
+    if 'inverse' == barrier_type:
+        return inverse_barrier(g)
+    return logarithmic_barrier(g)
 
 
-def barrier_method(f: Foo, g: Foo, x0, r0, c) -> (list, int):
+def get_auxiliary_function(f: Foo, g: Foo, mu, barrier_type='logarithmic') -> Foo:
+    obj = get_barrier_function(g, barrier_type)
+    barrier = obj.get_func()
+    barrier_gradient = obj.get_gradient()
+    return Foo(
+        lambda x: f.get_func()(x) + mu * barrier(x),
+        [lambda x: der_f(x) + mu * der_b(x) for der_f, der_b in zip(f.get_gradient(), barrier_gradient)]
+    )
 
+
+def method_status(xk, mu, g, barrier_type='logarithmic'):
+    eps = 0.00001
+    muB = mu * get_barrier_function(g, barrier_type).get_func()(xk)
+    return True if abs(muB) < eps else False
+
+# def method_status(auxiliary_func, xk, xk_plus_1):
+#     eps = 0.00001
+#     return True if abs(auxiliary_func.get_func()(xk_plus_1) - auxiliary_func.get_func()(xk)) <= eps else False
+
+
+
+def barrier_method(f: Foo, g: Foo, x0, mu0, beta, barrier_type='logarithmic', points='valid') -> (list, int):
     table = []
-    headers = ['k', 'r ^ k', 'f(xk)', 'B(xk)', '(r ^ k) * B(x, r ^ k)', 'F( r ^ k, x ^ k)']
+    headers = ['k', 'mu', 'f(xk)', 'B(xk)', 'F( r ^ k, x ^ k)']
 
-    xk = [0, 0, 0, 0, 0]
-    k = Decimal(0)
-    rk = r0
+    k = 0
+    mu = mu0
     cur_point = x0
 
-    eps = Decimal(0.00001)
     condition = True
     while condition:
-        auxiliary_func = get_auxiliary_function(f, g, rk)
-        xk = descent_with_const_step(auxiliary_func, cur_point)
-        rkb = rkB(xk, rk, g)
-        if rkb < eps:
-            condition = False
+        auxiliary_func = get_auxiliary_function(f, g, mu, barrier_type)
+        xk = gradient_descent(auxiliary_func, cur_point)
 
-        if g.check_point(xk):
-            table.append([k, rk, f.get_func()(xk), get_barrier_function(g)(xk), rkb, auxiliary_func.get_func()(xk)])
+        if points == 'valid':
+            if g.check_point_strict(xk):
+                condition = not method_status(xk, mu, g, barrier_type)
+                # condition = not method_status(auxiliary_func, cur_point, xk)
+
+                if condition:
+                    mu = mu * beta
+                    cur_point = xk
+                    k += 1
+            else:
+                return [0, 0, 0, 0, 0], 0
+        elif points == 'all':
+            condition = not method_status(xk, mu, g, barrier_type)
+            # condition = not method_status(auxiliary_func, cur_point, xk)
 
         if condition:
-            rk = rk * c
-            cur_point = xk
-            k += 1
+                mu = mu * beta
+                cur_point = xk
+                k += 1
 
-    if g.check_point(xk):
-        print(tabulate(table, headers, tablefmt="pretty"))
-        return xk, k
-    return [0, 0, 0, 0, 0], 0
+        table.append([k, mu, f.get_func()(xk), get_barrier_function(g, barrier_type).get_func()(xk), auxiliary_func.get_func()(xk)])
+
+    print(tabulate(table, headers, tablefmt="pretty"))
+    return cur_point, k

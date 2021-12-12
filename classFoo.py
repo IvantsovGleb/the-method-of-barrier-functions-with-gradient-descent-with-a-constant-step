@@ -1,5 +1,5 @@
 class Foo:
-    def __init__(self, func, grad):
+    def __init__(self, func=None, grad=None):
         self.__func = func
         self.__gradient = grad
 
